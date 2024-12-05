@@ -6,6 +6,7 @@ using Doantour.Models;
 using Doantour.Service;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Services.Profile;
 using System.Linq.Expressions;
 using System.Net;
 
@@ -114,24 +115,25 @@ namespace Doantour.Controllers
             return new ResponseFormat(HttpStatusCode.OK, "Thêm thành công", dto);
 
         }
+        
         [HttpGet("GetTourIsLocal")]
         public async Task<ResponseFormat> GetTourIsLocal()
         {
-            var result = await _service.SearchAsync(x => x.IsLocal == true);
+            var result = await _service.SearchAsync(x => x.IsLocal == true && x.IsDeleted==false);
             return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
 
         }
         [HttpGet("GetTourNotIsLocal")]
         public async Task<ResponseFormat> GetTourNotIsLocal()
         {
-            var result = await _service.SearchAsync(x => x.IsLocal == false);
+            var result = await _service.SearchAsync(x => x.IsLocal == false && x.IsDeleted==false);
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", result);
 
         }
         [HttpGet("GetToursByCountry")]
         public async Task<ResponseFormat> GetToursByCountry(int countryId)
         {
-            var result = await _service.SearchAsync(x => x.CountryId == countryId);
+            var result = await _service.SearchAsync(x => x.CountryId == countryId && x.IsDeleted== false);
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", result);
         }

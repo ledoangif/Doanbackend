@@ -2,6 +2,7 @@
 using Doantour.Hubs;
 using Doantour.Models;
 using Doantour.Service;
+using Doantour.Helpers;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -49,6 +50,13 @@ namespace Doantour.Controllers
             }
 
             return new ResponseFormat(HttpStatusCode.OK, "Insert Success", insertResult);
+        }
+        [HttpGet("GetBookingDeposited")]
+        public async Task<ResponseFormat> GetBookingDeposited()
+        {
+            var result = await _service.SearchAsync(x => x.StatusBill== Constants.Deposited && x.IsDeleted == false);
+            return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
+
         }
         [HttpGet("SearchBooking")]
         public virtual async Task<ResponseFormat> SearchBooking(int id)
