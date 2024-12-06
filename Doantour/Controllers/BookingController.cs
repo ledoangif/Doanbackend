@@ -51,6 +51,24 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Insert Success", insertResult);
         }
+        [HttpGet("GetBookingall")]
+        public async Task<ResponseFormat> GetBookingall()
+        {
+            var result = await _service.SearchAsync(x => x.StatusBill != Constants.Pending && x.IsDeleted == false);
+            return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
+        }
+        [HttpGet("SearchBookingByid")]
+        public virtual async Task<ResponseFormat> SearchBookingByid(int id)
+        {
+            var insertResult = await bookingService.FindAsync(id);
+
+            if (insertResult == null)
+            {
+                return new ResponseFormat(HttpStatusCode.BadRequest, "Search fail", null);
+            }
+
+            return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
+        }
         [HttpGet("GetBookingDeposited")]
         public async Task<ResponseFormat> GetBookingDeposited()
         {
@@ -70,6 +88,7 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
         }
+        
         [HttpGet("SearchBooking2")]
         public virtual async Task<ResponseFormat> SearchBooking2(string email)
         {

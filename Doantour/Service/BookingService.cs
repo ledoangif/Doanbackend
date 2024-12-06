@@ -157,6 +157,7 @@ namespace Doantour.Service
             // Trả về email và statusBill
             return (customer?.Email, booking.StatusBill,tour.NameTour);
         }
+        
         public async Task<BookingDTO> DeleteAsync(int id)
         {
             var existingEntity = await _BookingRepository.FindAsync(id);
