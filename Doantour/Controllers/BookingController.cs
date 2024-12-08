@@ -88,7 +88,17 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
         }
-        
+        [HttpGet("SearchBookingnew")]
+        public virtual async Task<ResponseFormat> SearchBookingnew(int id)
+        {
+            var insertResult = await bookingService.SearchAsync(x => x.Id ==id && x.StatusBill != Constants.Pending && x.IsDeleted == false);
+            if (insertResult == null)
+            {
+                return new ResponseFormat(HttpStatusCode.BadRequest, "Search fail", null);
+            }
+
+            return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
+        }
         [HttpGet("SearchBooking2")]
         public virtual async Task<ResponseFormat> SearchBooking2(string email)
         {

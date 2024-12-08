@@ -1,6 +1,7 @@
 ﻿using Doantour.Models;
 using Doantour.Request;
 using Doantour.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -239,6 +240,7 @@ namespace Doantour.Controllers
             return new ResponseFormat(HttpStatusCode.NoContent, "Xóa thành công!", 1);
         }
         // GET: api/Account
+        
         [HttpGet("All")]
         public ActionResult<ResponseFormat> GetAccount()
         {

@@ -11,8 +11,8 @@ namespace Doantour.Helpers.ContentEmail
             string formattedDateEnd = tourDetails.DateEnd.ToString("dd/MM/yyyy");
             string formattedPriceSale = tourDetails.PriceSale.ToString("#,##0") + " VND";
             string formattedPaymentTime = tourDetails.PaymentTime.ToString("dd/MM/yyyy HH:mm:ss");
-            string formattedPaymentTimePlusOneDay = tourDetails.PaymentTime.AddDays(1).ToString("dd/MM/yyyy HH:mm");
-            string formattedPaymentTimePlusTwoHours = tourDetails.PaymentTime.AddHours(24).ToString("dd/MM/yyyy HH:mm");
+            string formattedPaymentTimePlusOneDay = tourDetails.PaymentTime.AddDays(1).ToString("dd/MM/yyyy HH:mm:ss");
+            string formattedPaymentTimePlusTwoHours = tourDetails.PaymentTime.AddHours(24).ToString("dd/MM/yyyy HH:mm:ss");
             decimal remainingAmount = tourDetails.PriceSale - 100000; // Trừ 100,000 VND từ trị giá booking
             string formattedRemainingAmount = remainingAmount.ToString("#,##0") + " VND";
             

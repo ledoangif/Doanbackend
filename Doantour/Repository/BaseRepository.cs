@@ -63,7 +63,10 @@ namespace Doantour.Repository
 
         public async Task<List<T>> ToListAsync()
         {
+            //Sắp xếp giảm dần theo ngày
             return await _context.Set<T>().OrderByDescending(x => x.UpdateDate).Where(x => x.IsDeleted == false).ToListAsync();
+            //Sắp xếp tăng dần theo ngày
+            //return await _context.Set<T>().OrderBy(x => x.UpdateDate).Where(x => x.IsDeleted == false).ToListAsync();
         }
         public async Task<List<T>> PendingOrderBy()
         {
