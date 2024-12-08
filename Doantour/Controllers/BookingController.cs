@@ -91,7 +91,7 @@ namespace Doantour.Controllers
         [HttpGet("SearchBookingnew")]
         public virtual async Task<ResponseFormat> SearchBookingnew(int id)
         {
-            var insertResult = await bookingService.SearchAsync(x => x.Id ==id && x.StatusBill != Constants.Pending && x.IsDeleted == false);
+            var insertResult = await bookingService.SearchAsync(x => x.Id ==id && x.StatusBill != Constants.Save && x.IsDeleted == false);
             if (insertResult == null)
             {
                 return new ResponseFormat(HttpStatusCode.BadRequest, "Search fail", null);

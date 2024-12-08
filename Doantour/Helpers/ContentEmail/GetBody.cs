@@ -13,7 +13,7 @@ namespace Doantour.Helpers.ContentEmail
             string formattedPaymentTime = tourDetails.PaymentTime.ToString("dd/MM/yyyy HH:mm:ss");
             string formattedPaymentTimePlusOneDay = tourDetails.PaymentTime.AddDays(1).ToString("dd/MM/yyyy HH:mm:ss");
             string formattedPaymentTimePlusTwoHours = tourDetails.PaymentTime.AddHours(24).ToString("dd/MM/yyyy HH:mm:ss");
-            decimal remainingAmount = tourDetails.PriceSale - 100000*(tourDetails.Adult + tourDetails.Child); // Trừ 100,000 VND từ trị giá booking
+            decimal remainingAmount = tourDetails.PriceSale - 100000*(tourDetails.Adult + tourDetails.Child);
             string formattedRemainingAmount = remainingAmount.ToString("#,##0") + " VND";
             
             switch (bookingStatus)
