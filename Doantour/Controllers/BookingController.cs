@@ -54,7 +54,7 @@ namespace Doantour.Controllers
         [HttpGet("GetBookingall")]
         public async Task<ResponseFormat> GetBookingall()
         {
-            var result = await _service.SearchAsync(x => x.StatusBill != Constants.Pending && x.IsDeleted == false);
+            var result = await _service.SearchAsync(x => x.StatusBill != Constants.Save && x.IsDeleted == false);
             return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
         }
         [HttpGet("SearchBookingByid")]
@@ -69,10 +69,10 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
         }
-        [HttpGet("GetBookingDeposited")]
-        public async Task<ResponseFormat> GetBookingDeposited()
+        [HttpGet("GetBookingPending")]
+        public async Task<ResponseFormat> GetBookingPending()
         {
-            var result = await _service.SearchAsync(x => x.StatusBill== Constants.Deposited && x.IsDeleted == false);
+            var result = await _service.SearchAsync(x => x.StatusBill== Constants.Pending && x.IsDeleted == false);
             return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
 
         }
@@ -196,13 +196,14 @@ namespace Doantour.Controllers
         //    }
         //}
 
+        //Cập nhật trạng thái khi đặt cọc thành công
         [HttpPut("UpdateStatusToUnpaid")]
         public async Task<IActionResult> UpdateStatusToUnpaid(int bookingId)
         {
             // Gọi service để cập nhật trạng thái và lấy thông tin email và statusBill
-            var (email, statusBill, NameTour) = await bookingService.UpdateStatusToUnpaidAsync(bookingId);
+            var (email, statusBill) = await bookingService.UpdateStatusToUnpaidAsync(bookingId);
 
-            if (email == null || statusBill == null|| NameTour==null)
+            if (email == null || statusBill == null)
             {
                 return BadRequest("Cập nhật trạng thái thất bại hoặc không tìm thấy thông tin.");
             }
@@ -212,9 +213,33 @@ namespace Doantour.Controllers
             {
                 email,
                 statusBill,
-                NameTour
+                
             });
         }
+        // Lấy thông tin khách hàng khi đặt cọc thành công
+        [HttpGet("GetBookingDetails")]
+        public async Task<IActionResult> GetBookingDetails(int bookingId)
+        {
+            // Gọi service để lấy thông tin khách hàng và tên tour
+            var (customerName, tourName,child,adult, depositAmount) = await bookingService.GetBookingDetailsAsync(bookingId);
+
+            if (customerName == null || tourName == null)
+            {
+                return NotFound("Không tìm thấy thông tin booking.");
+            }
+
+            // Trả về thông tin tên khách hàng và tên tour
+            return Ok(new
+            {
+                CustomerName = customerName,
+                TourName = tourName,
+                Child = child,
+                Adult = adult,
+                DepositAmount = depositAmount
+            });
+        }
+
+
 
 
 

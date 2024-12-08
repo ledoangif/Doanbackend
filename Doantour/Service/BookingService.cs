@@ -116,42 +116,55 @@ namespace Doantour.Service
             }
 
             obj.UpdateDate = DateTime.Now;
-            // Kiểm tra nếu status thay đổi từ trạng thái khác sang Đã thanh toán hoặc Đã đặt cọc
+            // Lấy thông tin tour
+            var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
+            if (tour == null)
+            {
+                throw new BadHttpRequestException("Tour not found.");
+            }
+
+            // Xử lý trạng thái chuyển đổi
             if ((existingEntity.StatusBill != "Đã thanh toán" && existingEntity.StatusBill != "Đã đặt cọc") &&
                 (obj.StatusBill == "Đã thanh toán" || obj.StatusBill == "Đã đặt cọc"))
             {
-                // Lấy thông tin tour
-                var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
-                if (tour == null)
-                {
-                    throw new BadHttpRequestException("Tour not found.");
-                }
-
-                // Giảm số lượng vé của tour (giảm đi số vé đã đặt)
-                int totalTicketsToDecrease = existingEntity.Adult + existingEntity.Child;
+                // Giảm số lượng vé (chuyển từ Chờ xử lý sang Đã thanh toán/Đã đặt cọc)
+                int totalTicketsToDecrease = obj.Adult + obj.Child;
                 tour.slot -= totalTicketsToDecrease;
 
-                // Cập nhật lại số lượng vé trong tour
-                await _TourRepository.UpdateAsync(tour);
-            }
-            // Kiểm tra nếu status thay đổi từ trạng thái khác sang Hủy hoặc Khách hàng hủy
-            if ((existingEntity.StatusBill != "Hủy" && existingEntity.StatusBill != "Khách hàng hủy") &&
-                (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy"))
-            {
-                // Lấy thông tin tour
-                var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
-                if (tour == null)
+                if (tour.slot < 0)
                 {
-                    throw new BadHttpRequestException("Tour not found.");
+                    throw new BadHttpRequestException("Not enough slots available.");
                 }
-
-                // Tăng số lượng vé của tour (cộng lại 1 vé)
+            }
+            else if ((existingEntity.StatusBill == "Đã thanh toán" || existingEntity.StatusBill == "Đã đặt cọc") &&
+                     obj.StatusBill == "Chờ xử lý")
+            {
+                // Tăng số lượng vé (chuyển từ Đã thanh toán/Đã đặt cọc sang Chờ xử lý)
                 int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
                 tour.slot += totalTicketsToIncrease;
-
-                // Cập nhật lại số lượng vé trong tour
-                await _TourRepository.UpdateAsync(tour);
             }
+            else if ((existingEntity.StatusBill != "Hủy" && existingEntity.StatusBill != "Khách hàng hủy") &&
+                     (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy"))
+            {
+                // Tăng số lượng vé (chuyển từ trạng thái khác sang Hủy/Khách hàng hủy)
+                int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
+                tour.slot += totalTicketsToIncrease;
+            }
+            else if ((existingEntity.StatusBill == "Hủy" || existingEntity.StatusBill == "Khách hàng hủy") &&
+                     (obj.StatusBill == "Chờ xử lý"))
+            {
+                // Không thay đổi số vé khi chuyển giữa Hủy/Khách hàng hủy và Chờ xử lý
+                // => Logic giữ nguyên slot
+            }
+            else if ((existingEntity.StatusBill == "Chờ xử lý") &&
+                     (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy"))
+            {
+                // Không thay đổi số vé khi chuyển từ Chờ xử lý sang Hủy/Khách hàng hủy
+                // => Logic giữ nguyên slot
+            }
+
+            // Cập nhật lại số lượng vé trong tour
+            await _TourRepository.UpdateAsync(tour);
             _mapper.Map(obj, existingEntity);
             await _BookingRepository.UpdateAsync(existingEntity);
             return obj;
@@ -174,12 +187,12 @@ namespace Doantour.Service
         //    // Trả về đối tượng DTO đã cập nhật
         //    return _mapper.Map<BookingDTO>(existingEntity);
         //}
-        public async Task<(string email, string statusBill, string NameTour)> UpdateStatusToUnpaidAsync(int bookingId)
+        public async Task<(string email, string statusBill)> UpdateStatusToUnpaidAsync(int bookingId)
         {
             var booking = await _BookingRepository.FindAsync(bookingId);
             if (booking == null)
             {
-                return (null, null, null); // Trả về null nếu không tìm thấy booking
+                return (null, null); // Trả về null nếu không tìm thấy booking
             }
             var tour = await _TourRepository.FindAsync(booking.TourId.Value);
             int totalTicketsToDecrease = booking.Adult + booking.Child;
@@ -189,19 +202,36 @@ namespace Doantour.Service
                 throw new Exception("Số lượng vé không đủ để cập nhật trạng thái thành Đã đặt cọc.");
             }
 
-            booking.StatusBill = "Đã đặt cọc"; // Cập nhật trạng thái
-            booking.Paymented = 100000;
+            booking.StatusBill = "Chờ xử lý"; // Cập nhật trạng thái
+            //booking.Paymented = 100000* totalTicketsToDecrease;
             await _BookingRepository.UpdateAsync(booking);
-            tour.slot -= totalTicketsToDecrease;
+            //tour.slot -= totalTicketsToDecrease;
             await _TourRepository.UpdateAsync(tour);
 
             // Lấy thông tin khách hàng từ repository
             var customer = await _customerRepository.FindAsync(booking.CustomerId.Value);
             //var tour = await _TourRepository.FindAsync(booking.TourId.Value);
             // Trả về email và statusBill
-            return (customer?.Email, booking.StatusBill,tour.NameTour);
+            return (customer?.Email, booking.StatusBill);
         }
-        
+
+        public async Task<(string CustomerName, string TourName,int child,int adult, decimal DepositAmount)> GetBookingDetailsAsync(int bookingId)
+        {
+            var booking = await _BookingRepository.FindAsync(bookingId);
+            if (booking == null)
+            {
+                return (null, null,0,0,0); // Trả về null nếu không tìm thấy booking
+            }
+
+            var customer = await _customerRepository.FindAsync(booking.CustomerId.Value);
+            var tour = await _TourRepository.FindAsync(booking.TourId.Value);
+            var child = booking.Child;
+            var adult = booking.Adult;
+            decimal depositAmount = (100000 * child) + (100000 * adult);
+            return (customer?.NameCustomer, tour?.NameTour,child,adult,depositAmount); // Trả về tên khách hàng và tên tour
+        }
+
+
         public async Task<BookingDTO> DeleteAsync(int id)
         {
             var existingEntity = await _BookingRepository.FindAsync(id);
@@ -211,18 +241,22 @@ namespace Doantour.Service
             }
             existingEntity.IsDeleted = true;
             existingEntity.UpdateDate = DateTime.Now;
-            var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
-            if (tour == null)
-            {
-                throw new BadHttpRequestException("Tour not found.");
-            }
+            //// Kiểm tra nếu trạng thái là "Hủy" hoặc "Khách hàng hủy" thì mới tăng số lượng vé
+            //if (existingEntity.StatusBill == "Hủy" || existingEntity.StatusBill == "Khách hàng hủy")
+            //{
+            //    var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
+            //    if (tour == null)
+            //    {
+            //        throw new BadHttpRequestException("Tour not found.");
+            //    }
 
-            // Tăng số lượng vé của tour
-            int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
-            tour.slot += totalTicketsToIncrease;
+            //    // Tăng số lượng vé của tour
+            //    int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
+            //    tour.slot += totalTicketsToIncrease;
 
-            // Cập nhật lại tour
-            await _TourRepository.UpdateAsync(tour);
+            //    // Cập nhật lại tour
+            //    await _TourRepository.UpdateAsync(tour);
+            //}
 
             var item = await _BookingRepository.UpdateAsync(existingEntity);
             return _mapper.Map<BookingDTO>(item);
