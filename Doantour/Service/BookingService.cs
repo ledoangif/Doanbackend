@@ -86,16 +86,16 @@ namespace Doantour.Service
         public async Task<BookingDTO> InsertAsync(BookingDTO booking)
         {
 
-            //int totalTicketsToDecrease = booking.Adult + booking.Child;
-            //var tour = await _TourRepository.SearchAsync(x => x.Id == booking.TourId);
-            ////Check số lượng vé còn lại : Return :Vé hiện không đủ để đặt
-            //if (tour[0].slot < totalTicketsToDecrease)
-            //{
-            //    return null;
-            //}
+            int totalTicketsToDecrease = booking.Adult + booking.Child;
+            var tour = await _TourRepository.SearchAsync(x => x.Id == booking.TourId);
+            //Check số lượng vé còn lại : Return :Vé hiện không đủ để đặt
+            if (tour[0].slot < totalTicketsToDecrease)
+            {
+                return null;
+            }
             //tour[0].slot -= totalTicketsToDecrease;
-            //await _TourRepository.UpdateAsync(tour[0]);
-            
+            await _TourRepository.UpdateAsync(tour[0]);
+
             booking.UpdateDate = DateTime.Now;
             var objMap = _mapper.Map<Booking>(booking);
             await _BookingRepository.InsertAsync(objMap);
@@ -116,52 +116,70 @@ namespace Doantour.Service
             }
 
             obj.UpdateDate = DateTime.Now;
-            // Lấy thông tin tour
             var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
             if (tour == null)
             {
                 throw new BadHttpRequestException("Tour not found.");
             }
 
-            // Xử lý trạng thái chuyển đổi
-            if ((existingEntity.StatusBill != "Đã thanh toán" && existingEntity.StatusBill != "Đã đặt cọc") &&
-                (obj.StatusBill == "Đã thanh toán" || obj.StatusBill == "Đã đặt cọc"))
-            {
-                // Giảm số lượng vé (chuyển từ Chờ xử lý sang Đã thanh toán/Đã đặt cọc)
-                int totalTicketsToDecrease = obj.Adult + obj.Child;
-                tour.slot -= totalTicketsToDecrease;
+            int newTotalTickets = obj.Adult + obj.Child;
 
-                if (tour.slot < 0)
-                {
-                    throw new BadHttpRequestException("Not enough slots available.");
-                }
-            }
-            else if ((existingEntity.StatusBill == "Đã thanh toán" || existingEntity.StatusBill == "Đã đặt cọc") &&
-                     obj.StatusBill == "Chờ xử lý")
+            // Xử lý các trường hợp thay đổi trạng thái
+            switch (existingEntity.StatusBill)
             {
-                // Tăng số lượng vé (chuyển từ Đã thanh toán/Đã đặt cọc sang Chờ xử lý)
-                int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
-                tour.slot += totalTicketsToIncrease;
+                case "Chờ xử lý":
+                    // Nếu trạng thái mới là Chờ xử lý
+                    if (obj.StatusBill == "Chờ xử lý")
+                    {
+                        if (existingEntity.Adult + existingEntity.Child == newTotalTickets) return obj; // Không thay đổi
+                    }
+                    // Nếu trạng thái mới là Đã thanh toán hoặc Đã đặt cọc
+                    else if (obj.StatusBill == "Đã thanh toán" || obj.StatusBill == "Đã đặt cọc")
+                    {
+                        tour.slot -= newTotalTickets;
+                    }
+                    // Nếu trạng thái mới là Hủy hoặc Khách hàng hủy
+                    else if (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy")
+                    {
+                        return obj; // Không thay đổi slot
+                    }
+                    break;
+
+                case "Đã thanh toán":
+                    // Nếu trạng thái mới là Chờ xử lý, Hủy hoặc Khách hàng hủy
+                    if (obj.StatusBill == "Chờ xử lý" || obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy")
+                    {
+                        tour.slot += newTotalTickets;
+                    }
+                    break;
+                case "Đã đặt cọc":
+                    // Nếu trạng thái mới là Chờ xử lý, Hủy hoặc Khách hàng hủy
+                    if (obj.StatusBill == "Chờ xử lý" || obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy")
+                    {
+                        tour.slot += newTotalTickets;
+                    }
+                    break;
+
+                case "Hủy":
+                    if (obj.StatusBill == "Đã thanh toán" || obj.StatusBill == "Đã đặt cọc")
+                    {
+                        tour.slot -= newTotalTickets;
+                    }
+                    break;
+                case "Khách hàng hủy":
+                    if (obj.StatusBill == "Đã thanh toán" || obj.StatusBill == "Đã đặt cọc")
+                    {
+                        tour.slot -= newTotalTickets;
+                    }
+                    break;
             }
-            else if ((existingEntity.StatusBill != "Hủy" && existingEntity.StatusBill != "Khách hàng hủy") &&
-                     (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy"))
+
+            // Đảm bảo slot không âm
+            if (tour.slot < 0)
             {
-                // Tăng số lượng vé (chuyển từ trạng thái khác sang Hủy/Khách hàng hủy)
-                int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
-                tour.slot += totalTicketsToIncrease;
+                throw new BadHttpRequestException("Not enough slots available.");
             }
-            else if ((existingEntity.StatusBill == "Hủy" || existingEntity.StatusBill == "Khách hàng hủy") &&
-                     (obj.StatusBill == "Chờ xử lý"))
-            {
-                // Không thay đổi số vé khi chuyển giữa Hủy/Khách hàng hủy và Chờ xử lý
-                // => Logic giữ nguyên slot
-            }
-            else if ((existingEntity.StatusBill == "Chờ xử lý") &&
-                     (obj.StatusBill == "Hủy" || obj.StatusBill == "Khách hàng hủy"))
-            {
-                // Không thay đổi số vé khi chuyển từ Chờ xử lý sang Hủy/Khách hàng hủy
-                // => Logic giữ nguyên slot
-            }
+
 
             // Cập nhật lại số lượng vé trong tour
             await _TourRepository.UpdateAsync(tour);
@@ -203,7 +221,7 @@ namespace Doantour.Service
             }
 
             booking.StatusBill = "Chờ xử lý"; // Cập nhật trạng thái
-            //booking.Paymented = 100000* totalTicketsToDecrease;
+            booking.Paymented = 100000* totalTicketsToDecrease;
             await _BookingRepository.UpdateAsync(booking);
             //tour.slot -= totalTicketsToDecrease;
             await _TourRepository.UpdateAsync(tour);
@@ -241,22 +259,7 @@ namespace Doantour.Service
             }
             existingEntity.IsDeleted = true;
             existingEntity.UpdateDate = DateTime.Now;
-            //// Kiểm tra nếu trạng thái là "Hủy" hoặc "Khách hàng hủy" thì mới tăng số lượng vé
-            //if (existingEntity.StatusBill == "Hủy" || existingEntity.StatusBill == "Khách hàng hủy")
-            //{
-            //    var tour = await _TourRepository.FindAsync(existingEntity.TourId.Value);
-            //    if (tour == null)
-            //    {
-            //        throw new BadHttpRequestException("Tour not found.");
-            //    }
 
-            //    // Tăng số lượng vé của tour
-            //    int totalTicketsToIncrease = existingEntity.Adult + existingEntity.Child;
-            //    tour.slot += totalTicketsToIncrease;
-
-            //    // Cập nhật lại tour
-            //    await _TourRepository.UpdateAsync(tour);
-            //}
 
             var item = await _BookingRepository.UpdateAsync(existingEntity);
             return _mapper.Map<BookingDTO>(item);

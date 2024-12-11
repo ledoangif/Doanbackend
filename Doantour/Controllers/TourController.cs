@@ -22,7 +22,7 @@ namespace Doantour.Controllers
             emailService = service.SendMailService;
         }
         [HttpGet("SearchTour")]
-        public async Task<ResponseFormat> SearchByAsync(string? placeStart, string? placeEnd, int? CountryId, DateTime? dateStart, DateTime? dateEnd, Decimal? Price, string? name)
+        public async Task<ResponseFormat> SearchByAsync(string? placeStart, string? placeEnd, int? CountryId, DateTime? dateStart, DateTime? dateEnd,  string? name)
         {
             Expression<Func<Tour, bool>> searchCondition = x => true;
 
@@ -47,10 +47,10 @@ namespace Doantour.Controllers
             {
                 searchCondition = searchCondition.And(x => x.DateEnd <= dateEnd.Value);
             }
-            if (Price.HasValue)
-            {
-                searchCondition = searchCondition.And(x => x.PriceSale <= Price.Value);
-            }
+            //if (Price.HasValue)
+            //{
+            //    searchCondition = searchCondition.And(x => x.PriceSale <= Price.Value);
+            //}
             if (CountryId.HasValue)
             {
                 searchCondition = searchCondition.And(x => x.CountryId == CountryId);
@@ -62,7 +62,7 @@ namespace Doantour.Controllers
             return new ResponseFormat(HttpStatusCode.OK, "Search Success!", result);
         }
         [HttpGet("SearchTourAdmin")]
-        public async Task<ResponseFormat> SearchTourAdmin(string? placeStart, string? placeEnd, int? CountryId, DateTime? dateStart, DateTime? dateEnd, Decimal? Price, string? name)
+        public async Task<ResponseFormat> SearchTourAdmin(string? placeStart, string? placeEnd, int? CountryId, DateTime? dateStart, DateTime? dateEnd,  string? name)
         {
             Expression<Func<Tour, bool>> searchCondition = x => true;
 
@@ -87,10 +87,10 @@ namespace Doantour.Controllers
             {
                 searchCondition = searchCondition.And(x => x.DateEnd <= dateEnd.Value);
             }
-            if (Price.HasValue)
-            {
-                searchCondition = searchCondition.And(x => x.PriceSale <= Price.Value);
-            }
+            //if (Price.HasValue)
+            //{
+            //    searchCondition = searchCondition.And(x => x.PriceSale <= Price.Value);
+            //}
             if (CountryId.HasValue)
             {
                 searchCondition = searchCondition.And(x => x.CountryId == CountryId);
@@ -101,7 +101,6 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success!", result);
         }
-
         [HttpGet("search/{name}")]
         public async Task<ActionResult<ResponseFormat>> Search(string name)
         {
@@ -113,21 +112,6 @@ namespace Doantour.Controllers
         {
             await _tourService.InsertAsync(dto);
             return new ResponseFormat(HttpStatusCode.OK, "Thêm thành công", dto);
-
-        }
-        
-        [HttpGet("GetTourIsLocal")]
-        public async Task<ResponseFormat> GetTourIsLocal()
-        {
-            var result = await _service.SearchAsync(x => x.IsLocal == true && x.IsDeleted==false);
-            return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
-
-        }
-        [HttpGet("GetTourNotIsLocal")]
-        public async Task<ResponseFormat> GetTourNotIsLocal()
-        {
-            var result = await _service.SearchAsync(x => x.IsLocal == false && x.IsDeleted==false);
-            return new ResponseFormat(HttpStatusCode.OK, "Search Success", result);
 
         }
         [HttpGet("GetToursByCountry")]
@@ -146,19 +130,6 @@ namespace Doantour.Controllers
             }
 
             return Ok(await _tourService.UploadFile(ImageFile));
-        }
-
-        [HttpPut("UpdateIsFinishTour")]
-        public async Task<ResponseFormat> UpdateIsFinishTour(List<TourDTO> tour)
-        {
-            var item = await _tourService.UpdateIsFinishTour(tour);
-            return new ResponseFormat(HttpStatusCode.OK, "Cập nhật thành công", null);
-        }
-        [HttpGet("Top6TourNewUpdate")]
-        public async Task<ActionResult<ResponseFormat>> Top6Tour()
-        {
-            var listTour = await _tourService.Top6Tour();
-            return new ResponseFormat(HttpStatusCode.OK, "Get Success", listTour);
         }
         [HttpGet("GetTourNotFinish")]
         public async Task<ActionResult<ResponseFormat>> GetTourNotFinish()
@@ -204,5 +175,31 @@ namespace Doantour.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPut("UpdateIsFinishTour")]
+        public async Task<ResponseFormat> UpdateIsFinishTour(List<TourDTO> tour)
+        {
+            var item = await _tourService.UpdateIsFinishTour(tour);
+            return new ResponseFormat(HttpStatusCode.OK, "Cập nhật thành công", null);
+        }
+        [HttpGet("Top6TourNewUpdate")]
+        public async Task<ActionResult<ResponseFormat>> Top6Tour()
+        {
+            var listTour = await _tourService.Top6Tour();
+            return new ResponseFormat(HttpStatusCode.OK, "Get Success", listTour);
+        }
+        //[HttpGet("GetTourIsLocal")]
+        //public async Task<ResponseFormat> GetTourIsLocal()
+        //{
+        //    var result = await _service.SearchAsync(x => x.IsLocal == true && x.IsDeleted==false);
+        //    return new ResponseFormat(HttpStatusCode.OK, "Search  Success", result);
+
+        //}
+        //[HttpGet("GetTourNotIsLocal")]
+        //public async Task<ResponseFormat> GetTourNotIsLocal()
+        //{
+        //    var result = await _service.SearchAsync(x => x.IsLocal == false && x.IsDeleted==false);
+        //    return new ResponseFormat(HttpStatusCode.OK, "Search Success", result);
+
+        //}
     }
 }

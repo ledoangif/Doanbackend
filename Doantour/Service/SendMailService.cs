@@ -73,8 +73,18 @@ public class SendMailService
     //send mail
     public async Task SendBookingStatusEmailAsync(string to, string bookingStatus, int bookingId)
     {
+        //var subject = GetSubject.GetEmailSubjectForBookingStatus(bookingStatus);
+        //var tourDetails = await GetTourDetailsAsync(bookingId);
+        //var body = GetBody.GetEmailBodyForBookingStatus(bookingStatus, tourDetails);
+        //await SendEmailAsync(to, subject, body, true);
         var subject = GetSubject.GetEmailSubjectForBookingStatus(bookingStatus);
         var tourDetails = await GetTourDetailsAsync(bookingId);
+
+        if (tourDetails == null)
+        {
+            throw new Exception($"Tour details not found for bookingId {bookingId}");
+        }
+
         var body = GetBody.GetEmailBodyForBookingStatus(bookingStatus, tourDetails);
         await SendEmailAsync(to, subject, body, true);
     }

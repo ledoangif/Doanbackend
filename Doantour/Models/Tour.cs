@@ -9,8 +9,8 @@ namespace Doantour.Models
         public string? Descripttion { get; set; }
         public int Seat { get; set; }
         public int slot { get; set; }
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? PriceBuy { get; set; }
+        //[Column(TypeName = "decimal(18,2)")]
+        //public decimal? PriceBuy { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Cost { get; set; }
         public int? Discount { get; set; }

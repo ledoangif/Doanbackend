@@ -69,6 +69,7 @@ namespace Doantour.Controllers
 
             return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
         }
+        
         [HttpGet("GetBookingPending")]
         public async Task<ResponseFormat> GetBookingPending()
         {
@@ -81,6 +82,17 @@ namespace Doantour.Controllers
         {
             var insertResult = await bookingService.FindAsync(id);
 
+            if (insertResult == null)
+            {
+                return new ResponseFormat(HttpStatusCode.BadRequest, "Search fail", null);
+            }
+
+            return new ResponseFormat(HttpStatusCode.OK, "Search Success", insertResult);
+        }
+        [HttpGet("SearchBookingcustomer")]
+        public virtual async Task<ResponseFormat> SearchBookingcustomer(int id)
+        {
+            var insertResult = await bookingService.SearchAsync(x => x.CustomerId == id && x.StatusBill != Constants.Save && x.IsDeleted == false);
             if (insertResult == null)
             {
                 return new ResponseFormat(HttpStatusCode.BadRequest, "Search fail", null);

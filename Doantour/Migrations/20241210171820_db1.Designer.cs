@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Doantour.Migrations
 {
     [DbContext(typeof(Hachutravelcontext))]
-    [Migration("20241202141919_Dbint")]
-    partial class Dbint
+    [Migration("20241210171820_db1")]
+    partial class db1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -336,9 +336,6 @@ namespace Doantour.Migrations
 
                     b.Property<string>("Plan")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("PriceBuy")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PriceSale")
                         .HasColumnType("decimal(18,2)");

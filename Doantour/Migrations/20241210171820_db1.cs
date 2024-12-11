@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Doantour.Migrations
 {
     /// <inheritdoc />
-    public partial class Dbint : Migration
+    public partial class db1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -248,7 +248,6 @@ namespace Doantour.Migrations
                     Descripttion = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Seat = table.Column<int>(type: "int", nullable: false),
                     slot = table.Column<int>(type: "int", nullable: false),
-                    PriceBuy = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Discount = table.Column<int>(type: "int", nullable: true),
                     IsLocal = table.Column<bool>(type: "bit", nullable: false),

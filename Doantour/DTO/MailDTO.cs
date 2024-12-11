@@ -17,14 +17,14 @@
         public int NumOfDay { get; set; }
         public decimal PriceSale { get; set; }
 
-        //public string CountryName { get; set; }
+        public string CountryName { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
         public decimal TotalBill { get; set; }
         public decimal Paymented { get; set; }
-        //public string? PaymentBy { get; set; }
+        public string? PaymentBy { get; set; }
         public DateTime PaymentTime { get; set; }
         public int Child { get; set; }
         public int Adult { get; set; }

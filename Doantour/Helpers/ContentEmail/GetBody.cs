@@ -9,13 +9,13 @@ namespace Doantour.Helpers.ContentEmail
 
             string formattedDateStart = tourDetails.DateStart.ToString("dd/MM/yyyy");
             string formattedDateEnd = tourDetails.DateEnd.ToString("dd/MM/yyyy");
-            string formattedPriceSale = tourDetails.PriceSale.ToString("#,##0") + " VND";
+            string formattedPriceSale = tourDetails.TotalBill.ToString("#,##0") + " VND";
             string formattedPaymentTime = tourDetails.PaymentTime.ToString("dd/MM/yyyy HH:mm:ss");
             string formattedPaymentTimePlusOneDay = tourDetails.PaymentTime.AddDays(1).ToString("dd/MM/yyyy HH:mm:ss");
             string formattedPaymentTimePlusTwoHours = tourDetails.PaymentTime.AddHours(24).ToString("dd/MM/yyyy HH:mm:ss");
-            decimal remainingAmount = tourDetails.PriceSale - 100000*(tourDetails.Adult + tourDetails.Child);
+            decimal remainingAmount = tourDetails.TotalBill - 100000 * (tourDetails.Adult + tourDetails.Child);
             string formattedRemainingAmount = remainingAmount.ToString("#,##0") + " VND";
-            
+
             switch (bookingStatus)
             {
                 case Constants.Success:

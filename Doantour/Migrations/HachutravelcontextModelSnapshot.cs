@@ -334,9 +334,6 @@ namespace Doantour.Migrations
                     b.Property<string>("Plan")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("PriceBuy")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("PriceSale")
                         .HasColumnType("decimal(18,2)");
 
