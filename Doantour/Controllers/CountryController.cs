@@ -34,7 +34,7 @@ namespace Doantour.Controllers
                 string.IsNullOrWhiteSpace(dto.CountryImage) ||
                 string.IsNullOrWhiteSpace(dto.ContinentName))
             {
-                return BadRequest("Thông tin này không được để trống");
+                return BadRequest("Thông tin này không được để trống!");
             }
             var insertResult = await _service.InsertAsync(dto);
             return new ResponseFormat(HttpStatusCode.OK, "Thêm thành công", insertResult);
